@@ -23,13 +23,9 @@ except FileNotFoundError as e:
 def get_hate_level(probability: float) -> str:
     """Determina el nivel de odio basado en la probabilidad."""
     if probability < THRESHOLD:
-        return "Bajo"
-    elif probability < 0.7:
-        return "Moderado"
-    elif probability < 0.85:
-        return "Alto"
+        return "Sin mensaje de odio detectado"
     else:
-        return "Muy Alto"
+        return "Mensaje de odio detectado"
 
 class PredictionRequest(BaseModel):
     text: str

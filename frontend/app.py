@@ -139,7 +139,6 @@ def display_comment_results(comment: Dict, analysis: Dict, index: int):
             else:
                 st.success("✅ No se ha detectado contenido de odio")
             
-            st.info(f"Nivel de Odio: {analysis['hate_level']}")
         
         with col2:
             fig = create_gauge_chart(
@@ -264,9 +263,7 @@ def main():
                                     st.error("⚠️ Se ha detectado contenido de odio")
                                 else:
                                     st.success("✅ No se ha detectado contenido de odio")
-                                
-                                st.info(f"Nivel de Odio: {analysis['hate_level']}")
-                                
+                                                                
                                 st.write("Detalles:")
                                 for key, value in analysis["details"].items():
                                     st.write(f"- {key}: {value}")
