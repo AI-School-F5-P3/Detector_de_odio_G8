@@ -222,10 +222,10 @@ def main():
         detector = YouTubeHateDetector(API_KEY, threshold=0.59)
         
         # URL de ejemplo
-        video_url = "https://www.youtube.com/watch?v=w5hXrMBpmU8"
+        video_url = "https://www.youtube.com/watch?v=a5uQMwRMHcs"
         
         # Realizar análisis
-        results = detector.analyze_video_comments(video_url, max_comments=100)
+        results = detector.analyze_video_comments(video_url, max_comments=10000)
         
         # Guardar resultados
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
