@@ -17,7 +17,7 @@ def main():
     )
     
     # Esperar a que la API esté lista
-    time.sleep(3)
+    time.sleep(5)
     
     # Iniciar Streamlit
     print("Iniciando aplicación Streamlit...")
