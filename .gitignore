@@ -26,6 +26,7 @@ Air
 *.pyo
 *.pyd
 __pycache__/
+pipeline_cache/
 
 # Archivos de configuración de Jupyter Notebook
 .ipynb_checkpoints/
