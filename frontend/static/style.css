@@ -11,7 +11,7 @@
 .stMain{
     background: rgb(2,0,36);
     background: linear-gradient(352deg, rgba(2,0,36,1) 0%, rgba(33,6,88,1) 33%, rgba(34,40,130,1) 68%, rgba(7,105,148,1) 100%);
-
+}
 /* Color etiquetas y títulos*/
 h3,
 label[data-testid="stMetricLabel"] p{  
