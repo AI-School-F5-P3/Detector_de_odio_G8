@@ -1,4 +1,4 @@
-/*Estilo general para contenedores*/
+/* Estilo general para contenedores
  div[data-testid="stAppViewBlockContainer"] div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlockBorderWrapper"],
  div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stHorizontalBlock"] div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]  {
     background-color:white;
@@ -6,12 +6,57 @@
     border-radius:15px;        
     border: silver solid 2px;
     box-shadow: 0px 0px 10px rgba(178, 182, 192,0.3)
+} */
+
+header.stAppHeader {
+    background: transparent;
+}
+.stAppToolbar {
+    background: rgba(33, 39, 80, .8);
+    border-radius: 11px;
+    padding: 6px 5px;
+}
+div[data-testid="stImageContainer"] img {
+    width: 100vw !important;
+    margin-left: -5rem;
+    margin-top: -7rem;
 }
 
 .stMain{
     background: rgb(2,0,36);
     background: linear-gradient(352deg, rgba(2,0,36,1) 0%, rgba(33,6,88,1) 33%, rgba(34,40,130,1) 68%, rgba(7,105,148,1) 100%);
 }
+*{transition: all .3s ease;}
+
+.stMainBlockContainer.block-container {
+    max-width: 60vw;
+}
+
+.st-key-analizar_video button{
+    background-blend-mode: darken;
+    border: none;
+    transition: all 0.3s ease;
+    margin: 2rem 0;
+}
+
+.st-key-analizar_video button > div > p:before, .st-key-analizar_texto button > div > p:before {
+    font-family: 'Font Awesome 5 Free';
+    content: '\f002';
+    display: inline-block;
+    padding-right: 8px;
+    vertical-align: middle;
+    font-weight: 900;
+}
+
+
+
+
+
+
+
+
+
+
 /* Color etiquetas y títulos*/
 h3,
 label[data-testid="stMetricLabel"] p{  
@@ -43,49 +88,15 @@ label[data-testid="stMetricLabel"] p{
     width: auto;
   }
   
-  .stExpander details {
-    background: rgba(255, 255, 255, 0.95);
-    color: #161d27;
+.stExpander .stHorizontalBlock .stColumn:last-child {
+    width: 40%;
 }
 
-.st-f5 {
-    background-color: rgba(61, 213, 109, 0.75);
+.stExpander .stHorizontalBlock .stColumn:first-child {
+    width: 60% !important;
 }
 
-/* Estilo de valor de métricas*/
-div[data-testid="stMetricValue"]{
-    font-size:2.5em;
-    font-weight:bold;
-    color: #82858d;
+.js-plotly-plot .plotly .main-svg {
+    background: transparent !important;
 }
 
-/*Estilos para tablas*/
-
-.dashboardTable {
-    border-collapse: collapse;
-    margin: 25px 0;
-    font-size: 0.9em;
-    font-family: sans-serif;    
-    width:100%
-}
-.dashboardTable thead tr {
-    background-color: #f4f4f9;
-    color: #12bb94;
-    text-align: left;
-}
-.dashboardTable th,
-.dashboardTable td {
-    /* padding: 5px 5px; */
-    border:none;
-}
-
-.stMarkdownContainer{background-color: red;}
-
-.dashboardTable tbody tr {
-    border-bottom: 1px solid #ecedff;
-    background-color:white;
-}
-
-.dashboardTable tbody tr:nth-of-type(even) {
-    background-color: #f3f3f3;
-}

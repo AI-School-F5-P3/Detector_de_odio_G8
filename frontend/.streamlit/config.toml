@@ -5,7 +5,7 @@ enableCORS = false
 enableWebsocketCompression = false
 
 [theme]
-primaryColor = "#5681d0"
+primaryColor = "#1ea47e"
 backgroundColor = "#212750"
 secondaryBackgroundColor = "#1a1a3d"
 textColor = "#f8f8f2"
