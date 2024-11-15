@@ -12,6 +12,8 @@ import logging
 import time
 import httpx  # Usamos httpx para solicitudes asincrónicas
 
+import utils
+
 # Configuración
 API_URL = "http://127.0.0.1:8000/predict"
 INFO_URL = "http://127.0.0.1:8000/info"
@@ -26,6 +28,20 @@ load_dotenv()
 # Símbolos de círculos
 GREEN_CIRCLE = "\U0001F7E2"  # 🟢
 RED_CIRCLE = "\U0001F534"    # 🔴
+
+# Define tu CSS personalizado
+custom_css = """
+<style>
+    /* Tus estilos CSS aquí */
+    .element-container {
+        background-color: red !important;
+    }
+    .stButton > button {
+        background-color: #4CAF50;
+        color: white;
+    }
+</style>
+"""
 
 class YouTubeMonitor:
     def __init__(self, api_key: Optional[str] = None):
@@ -185,26 +201,30 @@ async def get_new_comments(monitor: YouTubeMonitor, video_id: str, max_comments:
     else:
         status_container.write("No se encontraron comentarios.")
     
-async def wait_for_next_update():
-    """Esperar 60 segundos antes de la siguiente actualización."""
-    await asyncio.sleep(10)
+async def wait_for_next_update(interval: int):
+    """Esperar x segundos antes de la siguiente actualización."""
+    await asyncio.sleep(interval)
 
-async def process_comments(monitor: YouTubeMonitor, video_id: str, max_comments: int, processed_comments: set, all_comments: list, status_container):
-    """Obtiene y procesa los comentarios de YouTube y espera 60 segundos entre cada ciclo."""
+async def process_comments(monitor: YouTubeMonitor, video_id: str, max_comments: int, processed_comments: set, all_comments: list, status_container, monitor_interval: int):
+    """Obtiene y procesa los comentarios de YouTube y espera x segundos entre cada ciclo."""
     while True:
         # Obtener y mostrar los nuevos comentarios
         await get_new_comments(monitor, video_id, max_comments, processed_comments, all_comments, status_container)
         
-        # Esperar 60 segundos antes de la siguiente actualización
-        await wait_for_next_update()
+        # Esperar x segundos antes de la siguiente actualización
+        await wait_for_next_update(monitor_interval)
 
 def main():
+    # Inicializar configuración de la página
     st.set_page_config(
         page_title="Detector de Odio YouTube",
         page_icon="🛡️",
         layout="wide"
     )
     
+    # Aplica el CSS a tu aplicación
+    utils.local_css('./static/style.css')
+
     st.title("🛡️ Detector de Odio - Análisis de YouTube")
     
     # Mantener un conjunto de comentarios procesados para evitar duplicados
@@ -215,7 +235,7 @@ def main():
 
     # Tabs para diferentes modos
     tab1, tab2 = st.tabs(["Análisis de Video", "Análisis de Texto"])
-    
+
     with tab1:
         st.subheader("Análisis de Comentarios de YouTube")
         
@@ -229,15 +249,16 @@ def main():
         status_container = st.empty()
 
         # Configuración de monitoreo
-        col1, col2 = st.columns(2)
+        col1, col2 , col3 = st.columns(3)
         with col1:
             # Nuevo selector para mostrar todos los comentarios o limitar a una cantidad
             show_all_comments = st.radio(
                 "¿Ver todos los comentarios?",
                 options=["Sí", "No"],
+                horizontal=True,
                 index=1  # "No" por defecto
             )
-            
+        with col2:   
             if show_all_comments == "No":
                 max_comments = st.number_input(
                     "Número máximo de comentarios a analizar:",
@@ -248,7 +269,7 @@ def main():
             else:
                 max_comments = 10000  # Mostrar todos los comentarios
 
-        with col2:
+        with col3:
             monitor_interval = st.number_input(
                 "Intervalo de actualización (segundos):",
                 min_value=10,
@@ -265,7 +286,7 @@ def main():
                     video_id = monitor.extract_video_id(video_url)
                     
                     # Ejecutar el análisis asincrónicamente
-                    asyncio.run(process_comments(monitor, video_id, max_comments, processed_comments, all_comments, status_container))
+                    asyncio.run(process_comments(monitor, video_id, max_comments, processed_comments, all_comments, status_container, monitor_interval))
                     
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
