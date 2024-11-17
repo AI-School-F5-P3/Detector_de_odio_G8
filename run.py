@@ -1,8 +1,11 @@
 import subprocess
 import sys
+import os
 import time
 import webbrowser
 from pathlib import Path
+
+os.environ["PYTHONPATH"] = str(Path(".").resolve())
 
 def main():
     # Paths
@@ -12,9 +15,9 @@ def main():
     # Iniciar la API
     print("Iniciando API...")
     api_process = subprocess.Popen(
-    [sys.executable, "-m", "uvicorn", "main:app", "--reload"],
-    cwd=str(api_path)
-)
+        [sys.executable, "-m", "uvicorn", "main:app", "--reload"],
+        cwd=str(api_path)  # Cambiar al directorio de la API
+    )
     
     # Esperar a que la API esté lista
     time.sleep(5)
@@ -22,8 +25,8 @@ def main():
     # Iniciar Streamlit
     print("Iniciando aplicación Streamlit...")
     frontend_process = subprocess.Popen(
-        [sys.executable, "-m", "streamlit", "run", "app.py"],
-        cwd=frontend_path
+        [sys.executable, "-m", "streamlit", "run", str(frontend_path / "app.py")],  # Especificar el archivo directamente
+        cwd="."  # Asegurar que el directorio raíz sea el contexto
     )
     
     # Abrir el navegador
