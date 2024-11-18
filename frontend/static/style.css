@@ -1,46 +1,55 @@
-/* Estilo general para contenedores
- div[data-testid="stAppViewBlockContainer"] div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlockBorderWrapper"],
- div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stHorizontalBlock"] div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]  {
-    background-color:white;
-    padding:5px;
-    border-radius:15px;        
-    border: silver solid 2px;
-    box-shadow: 0px 0px 10px rgba(178, 182, 192,0.3)
-} */
+/* Variables */
+:root {
+    --white-color: #fff;
+    --transparent-bg: rgba(0, 0, 0, 0.35);
+    --primary-bg: rgba(33, 39, 80, 0.8);
+    --primary-color: #1ea47e;
+    --secondary-color: rgba(255, 255, 255, 0.3);
+    --gradient-bg: linear-gradient(352deg, rgba(2, 0, 36, 1) 0%, rgba(33, 6, 88, 1) 33%, rgba(34, 40, 130, 1) 68%, rgba(7, 105, 148, 1) 100%);
+    --font-awesome: 'Font Awesome 5 Free';
+    --hover-transition: all 0.3s linear;
+    --border-radius: 10px;
+}
+
+/* Estilo general */
+body, h1 {
+    color: var(--white-color);
+}
 
 header.stAppHeader {
     background: transparent;
 }
+
 .stAppToolbar {
-    background: rgba(33, 39, 80, .8);
-    border-radius: 11px;
+    background: var(--primary-bg);
+    border-radius: var(--border-radius);
     padding: 6px 5px;
+    color: var(--white-color);
 }
+
 div[data-testid="stImageContainer"] img {
     width: 100vw !important;
     margin-left: -5rem;
     margin-top: -7rem;
 }
 
-.stMain{
-    background: rgb(2,0,36);
-    background: linear-gradient(352deg, rgba(2,0,36,1) 0%, rgba(33,6,88,1) 33%, rgba(34,40,130,1) 68%, rgba(7,105,148,1) 100%);
+.stMain {
+    background: var(--gradient-bg);
 }
-*{transition: all .3s ease;}
 
 .stMainBlockContainer.block-container {
     max-width: 60vw;
 }
 
-.st-key-analizar_video button{
+.st-key-analizar_video button {
     background-blend-mode: darken;
     border: none;
-    transition: all 0.3s ease;
     margin: 2rem 0;
 }
 
-.st-key-analizar_video button > div > p:before, .st-key-analizar_texto button > div > p:before {
-    font-family: 'Font Awesome 5 Free';
+.st-key-analizar_video button > div > p:before,
+.st-key-analizar_texto button > div > p:before {
+    font-family: var(--font-awesome);
     content: '\f002';
     display: inline-block;
     padding-right: 8px;
@@ -48,26 +57,91 @@ div[data-testid="stImageContainer"] img {
     font-weight: 900;
 }
 
+.st-dc::placeholder {
+    color: var(--secondary-color);
+}
 
+[data-baseweb="textarea"],
+[data-baseweb="base-input"],
+[data-baseweb="input"] {
+    border: none;
+    background: none;
+}
 
+[data-baseweb="textarea"] [data-baseweb="base-input"] textarea,
+[data-testid="stNumberInputStepDown"],
+[data-testid="stNumberInputStepUp"] {
+    background: transparent;
+    border: none;
+    transition: var(--hover-transition);
+}
 
+[data-testid="stNumberInputContainer"],
+[data-baseweb="textarea"] [data-baseweb="base-input"] textarea,
+[data-baseweb="input"] [data-baseweb="base-input"] input:not([type="number"]) {
+    background: var(--transparent-bg);
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+}
 
+[data-testid="stNumberInputStepDown"]:hover,
+[data-testid="stNumberInputStepUp"]:hover,
+[data-testid="stNumberInputStepDown"]:focus,
+[data-testid="stNumberInputStepUp"]:focus {
+    background-color: var(--primary-color) !important;
+}
 
+.st-db {
+    caret-color: var(--white-color);
+}
 
+.st-c1 {
+    color: var(--white-color);
+}
 
+.stButton button[kind="secondary"] {
+    background: rgba(30, 50, 50, 0.3);
+    border: 1px solid var(--secondary-color);
+    transition: var(--hover-transition);
+}
 
+.stButton button[kind="secondary"]:hover {
+    background: rgba(30, 30, 30, 0.3);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
 
-/* Color etiquetas y títulos*/
-h3,
-label[data-testid="stMetricLabel"] p{  
-    font-weight:bold;
-    /* color:#1ea47e */
+.stButton button[kind="secondary"]:active {
+    color: var(--white-color);
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+}
+
+.stButton button[kind="secondary"]:focus-visible {
+    box-shadow: var(--primary-color) 0px 0px 0px 0.2rem;
+}
+
+.stButton button[kind="secondary"]:focus:not(:active) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.st-c2 {
+    background-color: var(--primary-color);
+}
+
+h3, label[data-testid="stMetricLabel"] p {
+    font-weight: bold;
+    color: var(--white-color);
+}
+
+label, p, ul, li {
+    color: var(--white-color);
 }
 
 .stNumberInput {
     max-width: 265px;
 }
-
 
 .stHorizontalBlock {
     display: flex;
@@ -76,9 +150,9 @@ label[data-testid="stMetricLabel"] p{
     justify-content: flex-start;
     align-items: flex-start;
     align-content: flex-start;
-  }
-  
-  .stColumn {
+}
+
+.stColumn {
     display: block;
     flex-grow: 0;
     flex-shrink: 1;
@@ -86,8 +160,22 @@ label[data-testid="stMetricLabel"] p{
     align-self: auto;
     order: 0;
     width: auto;
-  }
-  
+}
+
+.stExpander {
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+}
+
+.stExpander svg[data-testid="stExpanderToggleIcon"] {
+    transition: var(--hover-transition);
+    fill: var(--secondary-color);
+}
+
+.stExpander:hover svg[data-testid="stExpanderToggleIcon"] {
+    fill: var(--primary-color);
+}
+
 .stExpander .stHorizontalBlock .stColumn:last-child {
     width: 40%;
 }
@@ -96,7 +184,31 @@ label[data-testid="stMetricLabel"] p{
     width: 60% !important;
 }
 
+[data-testid="stExpanderDetails"] .stColumn:first-child [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlockBorderWrapper"][data-test-scroll-behavior="normal"] {
+    background: var(--transparent-bg);
+}
+
 .js-plotly-plot .plotly .main-svg {
     background: transparent !important;
 }
 
+.stMainMenuPopover {
+    background: var(--transparent-bg);
+}
+
+.stMainMenuPopover * {
+    background: transparent;
+}
+
+ul[role="listbox"] {
+    background: var(--transparent-bg);
+}
+
+ul[role="listbox"] ul[role="option"] li:hover,
+ul[role="listbox"] ul[role="option"]:active {
+    background-color: var(--transparent-bg);
+}
+
+[data-baseweb="popover"] {
+    background: none;
+}

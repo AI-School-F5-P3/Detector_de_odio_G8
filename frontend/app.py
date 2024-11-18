@@ -2,13 +2,12 @@ import sys
 import os 
 import streamlit as st
 import asyncio
-from typing import Dict
-from datetime import datetime, timedelta
-from utils import local_css, remote_css
 import time
 import httpx  # Usamos httpx para solicitudes asincrónicas
 import requests
-
+from typing import Dict
+from datetime import datetime, timedelta
+from frontend.utils import local_css, remote_css
 
 # Añadimos el directorio `src` al sys.path
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -32,20 +31,45 @@ INFO_URL = load_config("INFO_URL")
 GREEN_CIRCLE = "\U0001F7E2"  # 🟢
 RED_CIRCLE = "\U0001F534"    # 🔴
 
-# función asincrónica usando httpx
-async def analyze_comment(text: str) -> Dict:
-    """Analiza un comentario usando la API de detección de odio de forma asincrónica."""
+async def fetch_analysis(api_url: str, text: str) -> dict:
+    """Realiza la solicitud a la API para analizar un comentario."""
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(API_URL, json={"text": text})
+            response = await client.post(api_url, json={"text": text})
             if response.status_code == 200:
-                return response.json()
-            else:
-                st.error(f"Error en API: {response.text}")
-                return None
+                return await response.json()  # Usa await aquí porque json() es asincrónico
+            return {"error": f"Error en la API: {response.status_code}", "detail": response.text}
+    except Exception as e:
+        return {"error": "Error inesperado", "detail": str(e)}
+
+
+# Actualización de analyze_comment
+async def analyze_comment(text: str) -> Dict:
+    """Analiza un comentario usando la API."""
+    try:
+        result = await fetch_analysis(API_URL, text)
+        if not result:
+            st.error("Error: No se pudo obtener la respuesta de la API.")
+        return result
     except Exception as e:
         st.error(f"Error analizando comentario: {e}")
         return None
+
+
+# # función asincrónica usando httpx
+# async def analyze_comment(text: str) -> Dict:
+#     """Analiza un comentario usando la API de detección de odio de forma asincrónica."""
+#     try:
+#         async with httpx.AsyncClient() as client:
+#             response = await client.post(API_URL, json={"text": text})
+#             if response.status_code == 200:
+#                 return response.json()
+#             else:
+#                 st.error(f"Error en API: {response.text}")
+#                 return None
+#     except Exception as e:
+#         st.error(f"Error analizando comentario: {e}")
+#         return None
 
 def display_comment_results(comment: Dict, analysis: Dict, index: int):
     """Muestra los resultados del análisis de un comentario dentro de un desplegable (st.expander)."""
@@ -62,12 +86,12 @@ def display_comment_results(comment: Dict, analysis: Dict, index: int):
         with col1:
             # Crear un key único para el text_area
             unique_key_text = f"text_area_{comment['id']}_{index}_{time.time()}"
-            st.text_area(
-                "Texto:", 
-                comment['text'], 
-                disabled=True, 
+            container = st.container(border=True)
+            container.write(
+                comment['text'],
                 key=unique_key_text  # Unique key using comment id, index, and timestamp
-            )
+                )
+
             st.write(f"👍 Likes: {comment['likes']}")
             
             if analysis['prediction'] == 1:
@@ -185,7 +209,7 @@ def main():
             monitor_interval = st.number_input("Intervalo de actualización (seg.)", min_value=10, max_value=30000, value=60)
         from streamlit_extras.stylable_container import stylable_container
 
-        if st.button("Analizar comentarios", type="primary", key="analizar_video"):
+        if st.button("Analizar comentarios", type="secondary", key="analizar_video"):
             if video_url:
                 try:
                     # Inicializar monitor
