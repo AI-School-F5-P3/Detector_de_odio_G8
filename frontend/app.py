@@ -5,7 +5,7 @@ import asyncio
 import time
 import httpx  # Usamos httpx para solicitudes asincrónicas
 import requests
-from typing import Dict
+from typing import Dict, Optional
 from datetime import datetime, timedelta
 from frontend.utils import local_css, remote_css
 
@@ -17,7 +17,6 @@ static_path = os.path.join(os.path.dirname(__file__), 'static', 'style.css')
 # Añadimos el directorio src al sys.path
 sys.path.append(src_path)
 
-# Ahora puedes importar el monitor sin problemas
 from monitor import YouTubeMonitor
 from chart import create_gauge_chart
 from config import load_config
@@ -31,45 +30,28 @@ INFO_URL = load_config("INFO_URL")
 GREEN_CIRCLE = "\U0001F7E2"  # 🟢
 RED_CIRCLE = "\U0001F534"    # 🔴
 
-async def fetch_analysis(api_url: str, text: str) -> dict:
+async def fetch_analysis(api_url: str, text: str, model_type: str) -> dict:
     """Realiza la solicitud a la API para analizar un comentario."""
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(api_url, json={"text": text})
+            response = await client.post(api_url, json={"text": text, "model_type": model_type})
             if response.status_code == 200:
-                return await response.json()  # Usa await aquí porque json() es asincrónico
+                return response.json()  # No es necesario 'await' aquí
             return {"error": f"Error en la API: {response.status_code}", "detail": response.text}
     except Exception as e:
         return {"error": "Error inesperado", "detail": str(e)}
 
 
-# Actualización de analyze_comment
-async def analyze_comment(text: str) -> Dict:
+async def analyze_comment(text: str, model_type: str) -> Optional[Dict]:  # Optional indica que la función puede devolver un dict o None, permitiendo que la función devuelva None cuando no se obtienen resultados u ocurre un error.   
     """Analiza un comentario usando la API."""
     try:
-        result = await fetch_analysis(API_URL, text)
+        result = await fetch_analysis(API_URL, text, model_type)
         if not result:
             st.error("Error: No se pudo obtener la respuesta de la API.")
         return result
     except Exception as e:
         st.error(f"Error analizando comentario: {e}")
         return None
-
-
-# # función asincrónica usando httpx
-# async def analyze_comment(text: str) -> Dict:
-#     """Analiza un comentario usando la API de detección de odio de forma asincrónica."""
-#     try:
-#         async with httpx.AsyncClient() as client:
-#             response = await client.post(API_URL, json={"text": text})
-#             if response.status_code == 200:
-#                 return response.json()
-#             else:
-#                 st.error(f"Error en API: {response.text}")
-#                 return None
-#     except Exception as e:
-#         st.error(f"Error analizando comentario: {e}")
-#         return None
 
 def display_comment_results(comment: Dict, analysis: Dict, index: int):
     """Muestra los resultados del análisis de un comentario dentro de un desplegable (st.expander)."""
@@ -79,8 +61,17 @@ def display_comment_results(comment: Dict, analysis: Dict, index: int):
     else:
         comment_icon = GREEN_CIRCLE  # Comentario sin odio
 
+    # Fecha original en formato ISO 8601
+    date_string = comment['date']
+
+    # Convertir la cadena a un objeto datetime
+    date_object = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+
+    # Formatear la fecha al formato dd/mm/aaaa
+    formatted_date = date_object.strftime("%d/%m/%Y - %H:%M")
+
     # Creamos un expander único para cada comentario con el ícono de color
-    with st.expander(f"{comment_icon} Comentario de {comment['author']} - {comment['date']}"):
+    with st.expander(f"{comment_icon} Comentario de {comment['author']} - {formatted_date}"):
         col1, col2 = st.columns(2)
         
         with col1:
@@ -99,6 +90,9 @@ def display_comment_results(comment: Dict, analysis: Dict, index: int):
             else:
                 st.success("✅ No se ha detectado contenido de odio")
             
+            # Mostrar el modelo utilizado
+            st.info(f"🤖 Modelo utilizado: {analysis['details'].get('model_used', 'transformer').title()}")
+            
         with col2:
             fig = create_gauge_chart(
                 analysis['probability'],
@@ -109,7 +103,7 @@ def display_comment_results(comment: Dict, analysis: Dict, index: int):
             unique_key_gauge = f"gauge_chart_{comment['id']}_{index}_{time.time()}"
             st.plotly_chart(fig, use_container_width=True, key=unique_key_gauge)
 
-async def get_new_comments(monitor: YouTubeMonitor, video_id: str, max_comments: int, processed_comments: set, all_comments: list, status_container):
+async def get_new_comments(monitor: YouTubeMonitor, video_id: str, max_comments: int, processed_comments: set, all_comments: list, status_container, model_type: str):
     """Obtiene y procesa los comentarios más recientes de un video."""
     comments = monitor.get_comments(video_id, max_results=max_comments)
     
@@ -121,7 +115,7 @@ async def get_new_comments(monitor: YouTubeMonitor, video_id: str, max_comments:
         for i, comment in enumerate(comments):
             # Si el comentario ya fue procesado, lo ignoramos
             if comment['id'] not in processed_comments:
-                analysis = await analyze_comment(comment['text'])
+                analysis = await analyze_comment(comment['text'], model_type)
                 if analysis:
                     processed_comments.add(comment['id'])  # Marcar este comentario como procesado
                     # Insertar comentario nuevo al principio de la lista
@@ -134,11 +128,11 @@ async def wait_for_next_update(interval: int):
     """Esperar x segundos antes de la siguiente actualización."""
     await asyncio.sleep(interval)
 
-async def process_comments(monitor: YouTubeMonitor, video_id: str, max_comments: int, processed_comments: set, all_comments: list, status_container, monitor_interval: int):
-    """Obtiene y procesa los comentarios de YouTube y espera x segundos entre cada ciclo."""
+async def process_comments(monitor: YouTubeMonitor, video_id: str, max_comments: int, processed_comments: set, all_comments: list, status_container, monitor_interval: int, model_type: str):
+    """Procesa los comentarios periódicamente."""
     while True:
-        # Obtener y mostrar los nuevos comentarios
-        await get_new_comments(monitor, video_id, max_comments, processed_comments, all_comments, status_container)
+    	# Obtener y mostrar los nuevos comentarios
+        await get_new_comments(monitor, video_id, max_comments, processed_comments, all_comments, status_container, model_type)
         
         # Esperar x segundos antes de la siguiente actualización
         await wait_for_next_update(monitor_interval)
@@ -147,7 +141,7 @@ def main():
     # Cargar configuración y CSS
     local_css(static_path)
 
-    # Incluye el enlace a la CDN de Material Icons
+    # Incluye el enlace a la CDN de AwesomeFont
     remote_css("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css")
 
     st.title("🛡️ Detector de Odio")
@@ -161,13 +155,24 @@ def main():
 
     with tab1:
         st.subheader("Análisis de Texto Individual")
-        message = st.text_area("Ingresa el texto a analizar:", height=100, help="Escribe o pega el texto que deseas analizar")
+        
+        # Selector de modelo
+        model_type = st.radio(
+            "Selecciona el modelo a utilizar:",
+            ["transformer", "traditional"],
+            help="Transformer: Nuevo modelo basado en transformers\nTraditional: Modelo ensemble original"
+        )
+        
+        message = st.text_area("Ingresa el texto a analizar:", height=100)
         
         if st.button("Analizar texto", key="analizar_texto"):
             if message:
                 with st.spinner("Analizando texto..."):
                     try:
-                        response = requests.post(API_URL, json={"text": message})
+                        response = requests.post(
+                            API_URL, 
+                            json={"text": message, "model_type": model_type}
+                        )
                         if response.status_code == 200:
                             analysis = response.json()
                             col1, col2 = st.columns(2)
@@ -182,7 +187,10 @@ def main():
                                     st.write(f"- {key}: {value}")
 
                             with col2:
-                                fig = create_gauge_chart(analysis["probability"], analysis["details"]["threshold_used"])
+                                fig = create_gauge_chart(
+                                    analysis["probability"], 
+                                    analysis["details"]["threshold_used"]
+                                )
                                 st.plotly_chart(fig, use_container_width=True)
                         else:
                             st.error(f"Error en la predicción: {response.json().get('detail', 'Error desconocido')}")
@@ -193,8 +201,16 @@ def main():
 
     with tab2:
         st.subheader("Análisis de Comentarios de YouTube")
-        video_url = st.text_input("URL del video de YouTube:", placeholder="https://www.youtube.com/watch?v=...")
         
+        # Selector de modelo para análisis de video
+        model_type_video = st.radio(
+            "Selecciona el modelo a utilizar para el análisis de comentarios:",
+            ["transformer", "traditional"],
+            key="model_type_video",
+            help="Transformer: Nuevo modelo basado en transformers\nTraditional: Modelo ensemble original"
+        )
+        
+        video_url = st.text_input("URL del video de YouTube:", placeholder="https://www.youtube.com/watch?v=...")
         status_container = st.empty()
 
         # Configuración de monitoreo
@@ -203,10 +219,12 @@ def main():
             show_all_comments = st.radio("¿Ver todos los comentarios?", options=["Sí", "No"], index=1, horizontal=True)
 
         with col2:
-            max_comments = st.number_input("Nº máximo de comentarios", min_value=1, max_value=10000, value=20) if show_all_comments == "No" else 10000
+            max_comments = st.number_input("Nº máximo de comentarios", min_value=1, max_value=10000, value=20) \
+                if show_all_comments == "No" else 10000
 
         with col3:
             monitor_interval = st.number_input("Intervalo de actualización (seg.)", min_value=10, max_value=30000, value=60)
+        
         from streamlit_extras.stylable_container import stylable_container
 
         if st.button("Analizar comentarios", type="secondary", key="analizar_video"):
@@ -218,7 +236,10 @@ def main():
                     video_id = monitor.extract_video_id(video_url)
                     
                     # Ejecutar el análisis asincrónicamente
-                    asyncio.run(process_comments(monitor, video_id, max_comments, processed_comments, all_comments, status_container, monitor_interval))
+                    asyncio.run(process_comments(
+                        monitor, video_id, max_comments, processed_comments,
+                        all_comments, status_container, monitor_interval, model_type_video
+                    ))
                 except Exception as e:
                     st.error(f"Error: {str(e)}")
             else:
