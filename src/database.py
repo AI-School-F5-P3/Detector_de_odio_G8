@@ -72,15 +72,33 @@ class DatabaseManager:
         Returns:
             bool: True si se guardó correctamente, False en caso contrario
         """
+        # Determinar los valores a guardar
         traditional_hate = traditional_result['prediction'] if traditional_result else None
         transformer_hate = transformer_result['prediction'] if transformer_result else None
 
+        # Primero, intentar actualizar el registro existente
+        update_query = """
+        UPDATE comment_analysis
+        SET traditional_hate = COALESCE(%s, traditional_hate),
+            transformer_hate = COALESCE(%s, transformer_hate)
+        WHERE video_id = %s AND comment_id = %s;
+        """
+        
+        try:
+            self.cursor.execute(update_query, 
+                              (traditional_hate, transformer_hate, video_id, comment_id))
+            if self.cursor.rowcount > 0:
+                self.connection.commit()
+                return True
+        except psycopg2.Error as e:
+            print(f"Error actualizando el análisis: {e}")
+            self.connection.rollback()
+
+        # Si no se actualizó, intentar insertar un nuevo registro
         insert_query = """
         INSERT INTO comment_analysis (video_id, comment_id, traditional_hate, transformer_hate)
         VALUES (%s, %s, %s, %s)
-        ON CONFLICT (video_id, comment_id) DO UPDATE
-        SET traditional_hate = EXCLUDED.traditional_hate,
-            transformer_hate = EXCLUDED.transformer_hate;
+        ON CONFLICT (video_id, comment_id) DO NOTHING;
         """
         
         try:
