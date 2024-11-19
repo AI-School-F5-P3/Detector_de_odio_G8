@@ -63,3 +63,5 @@ build/
 .env
 /.env
 models/model.safetensors
+
+mlruns
