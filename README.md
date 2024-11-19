@@ -1,4 +1,4 @@
-![](./src/assets/header.png)
+![](./src/assets/header.jpg)
 
 # HATE SHIELD
 
