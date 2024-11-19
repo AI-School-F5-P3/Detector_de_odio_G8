@@ -35,7 +35,7 @@ Los datos y resultados se almacenan en PostgreSQL.
 
 Simplemente ejecuta el archivo run.py y la magia se hará sola.
 
-Ah! La base de datos Postgres (hateshield) debes tenerla en local ;)
+Ah! La base de datos Postgres (hateshield) debes tenerla en local 😉
 
 Y no olvides configurar tu .env:
 
