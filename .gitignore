@@ -62,3 +62,4 @@ build/
 #ignorar dotenv
 .env
 /.env
+models/model.safetensors
