@@ -29,8 +29,6 @@ def main():
         cwd="."  # Asegurar que el directorio raíz sea el contexto
     )
     
-    # Abrir el navegador
-    webbrowser.open("http://localhost:8501")
     
     try:
         # Mantener el script corriendo
