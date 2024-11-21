@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  streamlit_app:
+    build:
+      context: ./frontend  # Ruta donde está el Dockerfile de Streamlit
+      dockerfile: Dockerfile
+    environment:
+      - YOUTUBE_API_KEY=AIzaSyBrSGVkVLUS1WFOvRDg_FM4SZzNtCrtXVI
+      - MODEL_PATH=model/ensemble_model_complete.joblib
+      - API_URL=http://api_service:8000/predict
+      - INFO_URL=http://api_service:8000/info
+      - DB_NAME=hateshield
+      - DB_USER=postgres
+      - DB_PASSWORD=melerox1x2
+      - DB_HOST=db_service
+      - DB_PORT=5432
+      - PORT=8501
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api_service
+      - db_service
+
+  api_service:
+    build:
+      context: ./api  # Ruta donde está el Dockerfile de la API
+      dockerfile: Dockerfile
+    command: uvicorn frontend.app:app --host 0.0.0.0 --port 8000  
+    environment:
+      - DB_HOST=db_service
+      - DB_PORT=5432
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_service
+
+  db_service:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: hateshield
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: melerox1x2
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+
